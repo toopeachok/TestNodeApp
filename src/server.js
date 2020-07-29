@@ -3,10 +3,8 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 
-require('dotenv').config();
-
-const port = process.env.PORT;
-const host = process.env.HOST;
+const port = 8080;
+const host = 'localhost';
 
 const mimeType = {
   '.ico': 'image/x-icon',
@@ -41,8 +39,14 @@ const server = http.createServer((req, res) => {
     pathname = path.join(__dirname, '../', sanitizePath);
   }
 
-  if (fs.existsSync(pathname)) {
-    if (fs.statSync(pathname).isDirectory()) pathname += '/index.html';
+  fs.stat(pathname, (err, stats) => {
+    if (err) {
+      res.statusCode = 404;
+      res.end(`File ${pathname} not found!`);
+      return;
+    }
+
+    if (stats.isDirectory()) pathname += '/index.html';
 
     fs.readFile(pathname, (err, data) => {
       if (err) {
@@ -54,10 +58,7 @@ const server = http.createServer((req, res) => {
         res.end(data);
       }
     });
-  } else {
-    res.statusCode = 404;
-    res.end(`File ${pathname} not found!`);
-  }
+  });
 });
 
 server.listen(port, host, () => {
