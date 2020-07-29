@@ -1,0 +1,27 @@
+{
+  "name": "testnodeapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "watch": "nodemon ./src/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toopeachok/TestNodeApp.git"
+  },
+  "author": "Toopeachok <2peachok@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/toopeachok/TestNodeApp/issues"
+  },
+  "homepage": "https://github.com/toopeachok/TestNodeApp",
+  "devDependencies": {
+    "nodemon": "^2.0.4",
+    "prettier": "^2.0.5"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0"
+  }
+}
