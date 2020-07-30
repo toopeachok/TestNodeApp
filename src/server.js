@@ -3,6 +3,7 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+const memoryCache = require('memory-cache');
 
 require('dotenv').config();
 
@@ -50,15 +51,24 @@ const server = http.createServer((req, res) => {
     ext = '.html';
   }
 
-  readFile(pathname)
-    .then((data) => {
-      res.setHeader('Content-type', mimeType[ext] || 'text/plain');
-      res.end(data);
-    })
-    .catch((error) => {
-      res.statusCode = 500;
-      res.end(`Error getting the file: ${error}.`);
-    });
+  let cachedData = memoryCache.get(pathname);
+
+  if (cachedData) {
+    console.log(cachedData);
+    res.setHeader('Content-type', mimeType[ext] || 'text/plain');
+    res.end(cachedData);
+  } else {
+    readFile(pathname)
+      .then((data) => {
+        memoryCache.put(pathname, data, 10000);
+        res.setHeader('Content-type', mimeType[ext] || 'text/plain');
+        res.end(data);
+      })
+      .catch((error) => {
+        res.statusCode = 500;
+        res.end(`Error getting the file: ${error}.`);
+      });
+  }
 });
 
 server.listen(port, host, () => {
