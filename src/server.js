@@ -2,9 +2,17 @@ const http = require('http');
 const url = require('url');
 const fs = require('fs');
 const path = require('path');
+const util = require('util');
 
-const port = 8080;
-const host = 'localhost';
+require('dotenv').config();
+
+let port = process.env.PORT || 8080;
+let host = process.env.HOST || 'localhost';
+
+const readFile = util.promisify(fs.readFile);
+const getFileDataAsync = async (pathname) => {
+  return await readFile(pathname);
+};
 
 const mimeType = {
   '.ico': 'image/x-icon',
@@ -36,29 +44,24 @@ const server = http.createServer((req, res) => {
   if (sanitizePath === '\\') {
     pathname = __dirname;
   } else {
-    pathname = path.join(__dirname, '../', sanitizePath);
+    pathname = path.join(__dirname, '..\\', sanitizePath);
   }
 
-  fs.stat(pathname, (err, stats) => {
-    if (err) {
-      res.statusCode = 404;
-      res.end(`File ${pathname} not found!`);
-      return;
-    }
+  let ext = path.parse(pathname).ext;
+  if (ext === '') {
+    pathname = path.join(pathname, '.\\index.html');
+    ext = '.html';
+  }
 
-    if (stats.isDirectory()) pathname += '/index.html';
-
-    fs.readFile(pathname, (err, data) => {
-      if (err) {
-        res.statusCode = 500;
-        res.end(`Error getting the file: ${err}.`);
-      } else {
-        const ext = path.parse(pathname).ext;
-        res.setHeader('Content-type', mimeType[ext] || 'text/plain');
-        res.end(data);
-      }
+  getFileDataAsync(pathname)
+    .then((data) => {
+      res.setHeader('Content-type', mimeType[ext] || 'text/plain');
+      res.end(data);
+    })
+    .catch((error) => {
+      res.statusCode = 500;
+      res.end(`Error getting the file: ${error}.`);
     });
-  });
 });
 
 server.listen(port, host, () => {
