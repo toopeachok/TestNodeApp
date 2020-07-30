@@ -10,9 +10,6 @@ let port = process.env.PORT || 8080;
 let host = process.env.HOST || 'localhost';
 
 const readFile = util.promisify(fs.readFile);
-const getFileDataAsync = async (pathname) => {
-  return await readFile(pathname);
-};
 
 const mimeType = {
   '.ico': 'image/x-icon',
@@ -53,7 +50,7 @@ const server = http.createServer((req, res) => {
     ext = '.html';
   }
 
-  getFileDataAsync(pathname)
+  readFile(pathname)
     .then((data) => {
       res.setHeader('Content-type', mimeType[ext] || 'text/plain');
       res.end(data);
