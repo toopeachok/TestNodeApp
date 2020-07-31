@@ -11,6 +11,7 @@ let port = process.env.PORT || 8080;
 let host = process.env.HOST || 'localhost';
 
 const readFile = util.promisify(fs.readFile);
+let isFileReading = false;
 
 const mimeType = {
   '.ico': 'image/x-icon',
@@ -54,20 +55,28 @@ const server = http.createServer((req, res) => {
   let cachedData = memoryCache.get(pathname);
 
   if (cachedData) {
-    console.log(cachedData);
+    console.log('Getting data from cache...');
     res.setHeader('Content-type', mimeType[ext] || 'text/plain');
     res.end(cachedData);
-  } else {
+  } else if (!isFileReading && !cachedData) {
+    console.log('Getting data from disk...');
+    isFileReading = true;
     readFile(pathname)
       .then((data) => {
+        isFileReading = false;
         memoryCache.put(pathname, data, 10000);
+        console.log('Has got data from the disk');
         res.setHeader('Content-type', mimeType[ext] || 'text/plain');
         res.end(data);
       })
       .catch((error) => {
+        isFileReading = false;
         res.statusCode = 500;
         res.end(`Error getting the file: ${error}.`);
       });
+  } else {
+    res.statusCode = 500;
+    res.end(`Error. File is already reading.`);
   }
 });
 
